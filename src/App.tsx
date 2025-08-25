@@ -1,10 +1,10 @@
-import JzFlow from './components/JzFlow';
+import Flow from './components/Flow';
 
 const App = () => {
   return (
     <div className='flex-1 w-full h-full overflow-auto'>
       <div className='w-full h-full p-4'>
-        <JzFlow />
+        <Flow />
       </div>
     </div>
   );
