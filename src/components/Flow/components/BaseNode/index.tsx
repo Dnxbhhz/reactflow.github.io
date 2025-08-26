@@ -1,17 +1,23 @@
-﻿import SvgIcon from '@/components/SvgIcon';
-import { NodeResizeControl } from '@xyflow/react';
+import SvgIcon from '@/components/SvgIcon';
+import { type NodeProps, NodeResizeControl } from '@xyflow/react';
 import { type ReactNode, memo } from 'react';
 
 const BaseNode = ({
   children,
-  esizeControl = true,
+  resizeControl = true,
+  ...props
 }: {
   children: ReactNode;
-  esizeControl?: boolean;
-}) => {
+  resizeControl?: boolean;
+} & NodeProps) => {
   return (
-    <div className='h-full w-full border-2 border-gray-300 rounded-md p-2 relative bg-white'>
-      {esizeControl && (
+    <div
+      className={
+        'h-full w-full border-2 border-gray-300 rounded-md p-2 relative bg-white ' +
+        (props.selected ? 'ring-2 ring-blue-500' : '')
+      }
+    >
+      {resizeControl && (
         <NodeResizeControl className='bg-transparent! border-none!'>
           <SvgIcon
             iconName='expand'
