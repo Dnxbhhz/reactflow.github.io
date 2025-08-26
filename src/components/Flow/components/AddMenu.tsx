@@ -1,27 +1,43 @@
 import SvgIcon from '@/components/SvgIcon';
-import { FloatingPortal } from '@floating-ui/react';
+import { useNodeId, useReactFlow } from '@xyflow/react';
+import { nanoid } from 'nanoid';
+import { getPosition } from '../utils/node';
+const AddMenu = ({
+  handleAddNode,
+  op,
+}: {
+  handleAddNode: (_type: string, _at: { x: number; y: number }) => void;
+  op?: string;
+}) => {
+  const rf = useReactFlow();
+  const nodeId = useNodeId();
+  const addNode = (e: React.MouseEvent, type: string) => {
+    if (op === 'drag') {
+      handleAddNode(type, { x: e.clientX, y: e.clientY });
+    } else {
+      rf.addNodes({
+        id: nanoid(),
+        type,
+        position: getPosition(rf, nodeId),
+        data: { label: type },
+      });
+    }
+  };
 
-const AddMenu = ({ refs, floatingStyles, getFloatingProps, setOpen }) => {
   return (
-    <FloatingPortal>
-      <div
-        ref={refs.setFloating}
-        style={floatingStyles}
-        {...getFloatingProps()}
-        className='z-50 rounded-md bg-white shadow'
+    <ul className='w-3xs py-1 text-sm'>
+      <li
+        className='px-3 py-1 hover:bg-gray-100 flex items-center gap-2 cursor-pointer'
+        onClick={e => addNode(e, 'Begin')}
       >
-        <ul onClick={() => setOpen(false)} className='w-3xs  py-1 text-sm'>
-          <li className='px-3 py-1 hover:bg-gray-100 flex items-center gap-2 cursor-pointer'>
-            <SvgIcon iconName='start' fill='none' />
-            开始
-          </li>
-          <li className='px-3 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer'>
-            <SvgIcon iconName='end' fill='none' />
-            结束
-          </li>
-        </ul>
-      </div>
-    </FloatingPortal>
+        <SvgIcon iconName='start' fill='none' />
+        开始
+      </li>
+      <li className='px-3 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer'>
+        <SvgIcon iconName='end' fill='none' />
+        结束
+      </li>
+    </ul>
   );
 };
 
