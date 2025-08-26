@@ -1,31 +1,26 @@
-import type {
-  Connection,
-  Edge,
-  EdgeChange,
-  Node,
-  NodeChange,
-} from '@xyflow/react';
+import type { Connection, Edge, Node } from '@xyflow/react';
 import {
   addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
   Background,
   Controls,
   MiniMap,
   ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
 } from '@xyflow/react';
+import { nanoid } from 'nanoid';
 import { useCallback, useState } from 'react';
+import CanvasContextMenu from './components/CanvasContextMenu';
 import nodeTypes from './components/nodeTypes';
-import {
-  PortalToFollowElem,
-  PortalToFollowElemContent,
-  PortalToFollowElemTrigger,
-} from './components/PortalToFollowElemContent';
 import type { JzFlowProps } from './types';
 
-const JzFlow = ({ nodes, edges }: JzFlowProps) => {
+const PREVIEW_ID = '__preview__';
+
+const Flow = ({ nodes, edges }: JzFlowProps) => {
   const [open, setOpen] = useState(false);
   const [pt, setPt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const rf = useReactFlow();
+  const [placingType, setPlacingType] = useState<string | null>(null);
 
   const initialNodes: Node[] = [
     {
@@ -38,80 +33,102 @@ const JzFlow = ({ nodes, edges }: JzFlowProps) => {
   ];
 
   const initialEdges: Edge[] = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
-  const [flowNodes, setFlowNodes] = useState<Node[]>(nodes || initialNodes);
   const [flowEdges, setFlowEdges] = useState<Edge[]>(edges || initialEdges);
 
-  const onNodesChange = useCallback(
-    (changes: NodeChange[]) =>
-      setFlowNodes((nodesSnapshot: Node[]) =>
-        applyNodeChanges(changes, nodesSnapshot)
-      ),
-    []
+  const startPlacing = useCallback(
+    (type: string, at: { x: number; y: number }) => {
+      setPlacingType(type);
+      const pos = rf.screenToFlowPosition(at);
+      rf.setNodes(nodes => {
+        const exists = nodes.some(n => n.id === PREVIEW_ID);
+        const preview: Node = {
+          id: PREVIEW_ID,
+          type,
+          position: pos,
+          data: { label: type, preview: true },
+          draggable: false,
+          selectable: false,
+        };
+        return exists
+          ? nodes.map(n => (n.id === PREVIEW_ID ? { ...preview } : n))
+          : [...nodes, preview];
+      });
+    },
+    [rf]
   );
-  const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) =>
-      setFlowEdges((edgesSnapshot: Edge[]) =>
-        applyEdgeChanges(changes, edgesSnapshot)
-      ),
-    []
-  );
+
   const onConnect = useCallback(
     (params: Connection) =>
       setFlowEdges((edgesSnapshot: Edge[]) => addEdge(params, edgesSnapshot)),
     []
   );
+
   return (
     <div
       className='w-full h-full'
-      onContextMenu={e => {
-        e.preventDefault();
-        setPt({ x: e.clientX, y: e.clientY });
-        setOpen(true);
+      onMouseMove={e => {
+        if (!placingType) return;
+        const pos = rf.screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        rf.setNodes(ns =>
+          ns.map(n => (n.id === PREVIEW_ID ? { ...n, position: pos } : n))
+        );
       }}
-      onClick={() => setOpen(false)} // 左键关闭（可选
+      onClick={e => {
+        setOpen(false);
+        if (!placingType) return;
+        const pos = rf.screenToFlowPosition({ x: e.clientX, y: e.clientY });
+        rf.setNodes(ns =>
+          ns
+            .filter(n => n.id !== PREVIEW_ID)
+            .concat([
+              {
+                id: nanoid(),
+                type: placingType,
+                position: pos,
+                data: { label: placingType },
+              },
+            ])
+        );
+        setPlacingType(null);
+      }}
     >
       <ReactFlow
-        nodes={flowNodes}
-        edges={flowEdges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
+        defaultNodes={initialNodes}
+        defaultEdges={initialEdges}
+        onPaneContextMenu={e => {
+          e.preventDefault();
+          setPt({ x: e.clientX, y: e.clientY });
+          setOpen(true);
+        }}
+        onNodeContextMenu={e => {
+          e.preventDefault();
+          setPt({ x: e.clientX, y: e.clientY });
+          setOpen(true);
+        }}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         fitView
+        onClick={() => setOpen(false)}
       >
         <Background />
         <Controls />
         <MiniMap zoomable pannable />
       </ReactFlow>
 
-      <PortalToFollowElem
+      <CanvasContextMenu
+        handleAddNode={startPlacing}
         open={open}
         onOpenChange={setOpen}
-        placement='bottom-start'
-        offset={6}
-      >
-        {/* 用零尺寸“参考元素”承载坐标 */}
-        <PortalToFollowElemTrigger asChild>
-          <div
-            style={{
-              position: 'fixed',
-              left: pt.x,
-              top: pt.y,
-              width: 0,
-              height: 0,
-            }}
-          />
-        </PortalToFollowElemTrigger>
-
-        <PortalToFollowElemContent className='rounded border bg-white shadow p-2'>
-          <ul onClick={() => setOpen(false)}>
-            <li className='px-3 py-1 hover:bg-gray-100 cursor-pointer'>开始</li>
-            <li className='px-3 py-1 hover:bg-gray-100 cursor-pointer'>结束</li>
-          </ul>
-        </PortalToFollowElemContent>
-      </PortalToFollowElem>
+        anchor={pt}
+      />
     </div>
   );
 };
 
-export default JzFlow;
+export default function JzFlow(props: JzFlowProps) {
+  return (
+    <ReactFlowProvider>
+      <Flow {...props} />
+    </ReactFlowProvider>
+  );
+}
