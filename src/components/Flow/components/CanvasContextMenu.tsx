@@ -71,6 +71,7 @@ const CanvasContextMenu = ({
                     handleAddNode(...props);
                     setSubOpen(false);
                   }}
+                  op='drag'
                 />
               </PortalToFollowElemContent>
             </PortalToFollowElem>
