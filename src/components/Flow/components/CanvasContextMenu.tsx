@@ -13,7 +13,7 @@ type CanvasContextMenuProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   anchor: Point;
-  handleAddNode: (type: string, at: { x: number; y: number }) => void;
+  handleAddNode: (_type?: string, _at?: { x: number; y: number }) => void;
 };
 
 const CanvasContextMenu = ({
@@ -67,8 +67,10 @@ const CanvasContextMenu = ({
 
               <PortalToFollowElemContent className='rounded bg-white shadow p-2'>
                 <AddMenu
-                  handleAddNode={(...props) => {
-                    handleAddNode(...props);
+                  handleAddNode={(t?: string, p?: { x: number; y: number }) => {
+                    if (t && p) {
+                      handleAddNode(t, p);
+                    }
                     setSubOpen(false);
                   }}
                   op='drag'

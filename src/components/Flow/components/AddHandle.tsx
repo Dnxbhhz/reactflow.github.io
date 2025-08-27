@@ -1,6 +1,7 @@
 import SvgIcon from '@/components/SvgIcon';
 import { Handle, Position } from '@xyflow/react';
 import { useState } from 'react';
+import AddMenu from './AddMenu';
 import {
   PortalToFollowElem,
   PortalToFollowElemContent,
@@ -28,14 +29,12 @@ const AddHandle = () => {
         </PortalToFollowElemTrigger>
 
         <PortalToFollowElemContent className='rounded border bg-white shadow p-2'>
-          <ul onClick={() => setOpen(false)}>
-            <li className='px-3 py-1 hover:bg-gray-100 cursor-pointer'>
-              开始1
-            </li>
-            <li className='px-3 py-1 hover:bg-gray-100 cursor-pointer'>
-              结束2
-            </li>
-          </ul>
+          <AddMenu
+            handleAddNode={() => {
+              setOpen(false);
+            }}
+            op='click'
+          />
         </PortalToFollowElemContent>
       </PortalToFollowElem>
     </Handle>

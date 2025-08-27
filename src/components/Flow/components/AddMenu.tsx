@@ -4,23 +4,26 @@ import { nanoid } from 'nanoid';
 import { getPosition } from '../utils/node';
 const AddMenu = ({
   handleAddNode,
-  op,
+  op = 'click',
 }: {
-  handleAddNode: (_type: string, _at: { x: number; y: number }) => void;
+  handleAddNode?: (_type?: string, _at?: { x: number; y: number }) => void;
   op?: string;
 }) => {
   const rf = useReactFlow();
   const nodeId = useNodeId();
   const addNode = (e: React.MouseEvent, type: string) => {
     if (op === 'drag') {
-      handleAddNode(type, { x: e.clientX, y: e.clientY });
+      handleAddNode?.(type, { x: e.clientX, y: e.clientY });
     } else {
+      const id = nanoid();
       rf.addNodes({
-        id: nanoid(),
+        id,
         type,
-        position: getPosition(rf, nodeId),
+        position: getPosition(rf, nodeId ?? ''),
         data: { label: type },
       });
+      rf.addEdges([{ id, source: nodeId ?? '', target: id }]);
+      handleAddNode?.();
     }
   };
 

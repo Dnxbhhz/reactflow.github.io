@@ -36,7 +36,8 @@ const Flow = ({ nodes, edges }: JzFlowProps) => {
   const [flowEdges, setFlowEdges] = useState<Edge[]>(edges || initialEdges);
 
   const startPlacing = useCallback(
-    (type: string, at: { x: number; y: number }) => {
+    (type?: string | undefined, at?: { x: number; y: number }) => {
+      if (!type) return;
       setPlacingType(type);
       const pos = rf.screenToFlowPosition(at);
       rf.setNodes(nodes => {
