@@ -6,7 +6,7 @@ interface SvgIconProps {
   size?: number | string;
   color?: string;
   className?: string;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent<SVGSVGElement>) => void;
   fill?: string;
   stroke?: string;
   style?: Record<string, string | number>;

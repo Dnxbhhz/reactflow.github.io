@@ -1,6 +1,5 @@
 import type { Connection, Edge, Node } from '@xyflow/react';
 import {
-  addEdge,
   Background,
   Controls,
   MiniMap,
@@ -12,11 +11,11 @@ import { nanoid } from 'nanoid';
 import { useCallback, useState } from 'react';
 import CanvasContextMenu from './components/CanvasContextMenu';
 import nodeTypes from './components/nodeTypes';
-import type { JzFlowProps } from './types';
+import type { FlowProps } from './types';
 
 const PREVIEW_ID = '__preview__';
 
-const Flow = ({ nodes, edges }: JzFlowProps) => {
+const Flow = ({ nodes, edges }: FlowProps) => {
   const [open, setOpen] = useState(false);
   const [pt, setPt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const rf = useReactFlow();
@@ -24,20 +23,18 @@ const Flow = ({ nodes, edges }: JzFlowProps) => {
 
   const initialNodes: Node[] = [
     {
-      id: 'n1',
+      id: nanoid(),
       position: { x: 0, y: 0 },
       data: { label: 'Node 1' },
       type: 'Begin',
     },
-    { id: 'n2', position: { x: 0, y: 100 }, data: { label: 'Node 2' } },
   ];
 
-  const initialEdges: Edge[] = [{ id: 'n1-n2', source: 'n1', target: 'n2' }];
-  const [flowEdges, setFlowEdges] = useState<Edge[]>(edges || initialEdges);
+  const initialEdges: Edge[] = [];
 
   const startPlacing = useCallback(
     (type?: string | undefined, at?: { x: number; y: number }) => {
-      if (!type) return;
+      if (!type || !at) return;
       setPlacingType(type);
       const pos = rf.screenToFlowPosition(at);
       rf.setNodes(nodes => {
@@ -59,9 +56,10 @@ const Flow = ({ nodes, edges }: JzFlowProps) => {
   );
 
   const onConnect = useCallback(
-    (params: Connection) =>
-      setFlowEdges((edgesSnapshot: Edge[]) => addEdge(params, edgesSnapshot)),
-    []
+    (params: Connection) => {
+      rf.addEdges({ id: nanoid(), ...params });
+    },
+    [rf]
   );
 
   return (
@@ -94,10 +92,16 @@ const Flow = ({ nodes, edges }: JzFlowProps) => {
       }}
     >
       <ReactFlow
-        defaultNodes={initialNodes}
-        defaultEdges={initialEdges}
+        defaultNodes={nodes || initialNodes}
+        defaultEdges={edges || initialEdges}
         onPaneContextMenu={e => {
           e.preventDefault();
+          if (placingType) {
+            rf.setNodes(ns => ns.filter(n => n.id !== PREVIEW_ID));
+            setPlacingType(null);
+            setOpen(false);
+            return;
+          }
           setPt({ x: e.clientX, y: e.clientY });
           setOpen(true);
         }}
@@ -126,7 +130,7 @@ const Flow = ({ nodes, edges }: JzFlowProps) => {
   );
 };
 
-export default function JzFlow(props: JzFlowProps) {
+export default function MyFlow(props: FlowProps) {
   return (
     <ReactFlowProvider>
       <Flow {...props} />

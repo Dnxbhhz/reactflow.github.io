@@ -22,7 +22,7 @@ const AddMenu = ({
         position: getPosition(rf, nodeId ?? ''),
         data: { label: type },
       });
-      rf.addEdges([{ id, source: nodeId ?? '', target: id }]);
+      rf.addEdges([{ id: nanoid(), source: nodeId ?? '', target: id }]);
       handleAddNode?.();
     }
   };

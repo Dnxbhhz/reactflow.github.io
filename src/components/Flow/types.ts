@@ -6,7 +6,7 @@ import type {
   NodeChange,
 } from '@xyflow/react';
 
-export interface JzFlowProps {
+export interface FlowProps {
   nodes?: Node[];
   edges?: Edge[];
   onNodesChange?: (_changes: NodeChange[]) => void;
@@ -14,7 +14,7 @@ export interface JzFlowProps {
   onConnect?: (_connection: Connection) => void;
 }
 
-export interface JzFlowState {
+export interface FlowState {
   flowNodes: Node[];
   flowEdges: Edge[];
 }

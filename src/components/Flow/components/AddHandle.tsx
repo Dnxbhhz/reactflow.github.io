@@ -28,7 +28,7 @@ const AddHandle = () => {
           />
         </PortalToFollowElemTrigger>
 
-        <PortalToFollowElemContent className='rounded border bg-white shadow p-2'>
+        <PortalToFollowElemContent className='rounded bg-white shadow p-2'>
           <AddMenu
             handleAddNode={() => {
               setOpen(false);
